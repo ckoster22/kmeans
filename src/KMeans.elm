@@ -158,27 +158,6 @@ centerPointsFuzzer =
         |> map (List.take 3)
 
 
-pointIntFuzzer : Fuzzer Point3D
-pointIntFuzzer =
-    map3
-        Point3D
-        (intRange -4 4 |> map toFloat)
-        (intRange -4 4 |> map toFloat)
-        (intRange -4 4 |> map toFloat)
-
-
-pointsIntFuzzer : Fuzzer (List Point3D)
-pointsIntFuzzer =
-    list pointIntFuzzer
-        |> map (List.take 30)
-
-
-centerPointsIntFuzzer : Fuzzer (List Point3D)
-centerPointsIntFuzzer =
-    list pointIntFuzzer
-        |> map (List.take 3)
-
-
 
 -- Test suite
 
@@ -186,8 +165,7 @@ centerPointsIntFuzzer =
 suite : Test
 suite =
     describe "KMeans tests"
-        [ centerPointsAreValidWithFloats
-        , centerPointsAreValidWithInts
+        [ centerPointsAreValid
         , pointsAreAssignedToNearestCluster
         ]
 
@@ -196,29 +174,9 @@ suite =
 -- Tests
 
 
-centerPointsAreValidWithFloats : Test
-centerPointsAreValidWithFloats =
+centerPointsAreValid : Test
+centerPointsAreValid =
     fuzz2 centerPointsFuzzer pointsFuzzer "Center points with floats shouldn't contain NaN values" <|
-        \centerPoints points ->
-            let
-                clusterCenters =
-                    run centerPoints points
-                        |> List.map .center
-            in
-            Expect.equal True
-                (List.all
-                    (\point ->
-                        not (isNaN point.x)
-                            && not (isNaN point.y)
-                            && not (isNaN point.z)
-                    )
-                    clusterCenters
-                )
-
-
-centerPointsAreValidWithInts : Test
-centerPointsAreValidWithInts =
-    fuzz2 centerPointsIntFuzzer pointsIntFuzzer "Center points with ints shouldn't contain NaN values" <|
         \centerPoints points ->
             let
                 clusterCenters =
@@ -238,7 +196,7 @@ centerPointsAreValidWithInts =
 
 pointsAreAssignedToNearestCluster : Test
 pointsAreAssignedToNearestCluster =
-    fuzz2 centerPointsIntFuzzer pointsIntFuzzer "Points in one cluster should not be closer to another cluster" <|
+    fuzz2 centerPointsFuzzer pointsFuzzer "Points in one cluster should not be closer to another cluster" <|
         \centerPoints points ->
             let
                 clusters =
