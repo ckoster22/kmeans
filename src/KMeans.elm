@@ -28,11 +28,9 @@ type alias Cluster =
 
 run : List Point3D -> List Point3D -> List Cluster
 run centers points =
-    let
-        clusters =
-            List.map (Cluster []) centers
-    in
-    assignAndMoveClusters 0 points clusters
+    centers
+        |> List.map (Cluster [])
+        |> assignAndMoveClusters 0 points
 
 
 
@@ -99,17 +97,13 @@ moveCenters : List Cluster -> List Cluster
 moveCenters clusters =
     List.map
         (\cluster ->
-            let
-                averageX =
-                    average .x cluster.points
-
-                averageY =
-                    average .y cluster.points
-
-                averageZ =
-                    average .z cluster.points
-            in
-            { cluster | center = Point3D averageX averageY averageZ }
+            { cluster
+                | center =
+                    { x = average .x cluster.points
+                    , y = average .y cluster.points
+                    , z = average .z cluster.points
+                    }
+            }
         )
         clusters
 
@@ -193,7 +187,7 @@ suite : Test
 suite =
     describe "KMeans tests"
         [ centerPointsAreValidWithFloats
-        , centerPointsAreValidWithInt
+        , centerPointsAreValidWithInts
         , pointsAreAssignedToNearestCluster
         ]
 
@@ -211,18 +205,19 @@ centerPointsAreValidWithFloats =
                     run centerPoints points
                         |> List.map .center
             in
-            Expect.equal False
-                (List.foldl
-                    (\point foundNaN ->
-                        foundNaN || isNaN point.x || isNaN point.y || isNaN point.z
+            Expect.equal True
+                (List.all
+                    (\point ->
+                        not (isNaN point.x)
+                            && not (isNaN point.y)
+                            && not (isNaN point.z)
                     )
-                    False
                     clusterCenters
                 )
 
 
-centerPointsAreValidWithInt : Test
-centerPointsAreValidWithInt =
+centerPointsAreValidWithInts : Test
+centerPointsAreValidWithInts =
     fuzz2 centerPointsIntFuzzer pointsIntFuzzer "Center points with ints shouldn't contain NaN values" <|
         \centerPoints points ->
             let
@@ -230,12 +225,13 @@ centerPointsAreValidWithInt =
                     run centerPoints points
                         |> List.map .center
             in
-            Expect.equal False
-                (List.foldl
-                    (\point foundNaN ->
-                        foundNaN || isNaN point.x || isNaN point.y || isNaN point.z
+            Expect.equal True
+                (List.all
+                    (\point ->
+                        not (isNaN point.x)
+                            && not (isNaN point.y)
+                            && not (isNaN point.z)
                     )
-                    False
                     clusterCenters
                 )
 
