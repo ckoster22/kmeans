@@ -19,7 +19,7 @@ foldl callback accumulator ( head, tail ) =
 
 indexedMap : (Int -> a -> b) -> NonEmpty a -> NonEmpty b
 indexedMap mapper ( head, tail ) =
-    ( mapper 0 head, List.indexedMap mapper tail )
+    ( mapper 0 head, List.indexedMap (\index a -> mapper (index + 1) a) tail )
 
 
 takeFromTail : Int -> NonEmpty a -> NonEmpty a
